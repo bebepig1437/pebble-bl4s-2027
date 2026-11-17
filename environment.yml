@@ -1,0 +1,19 @@
+name: bl4s-sim
+channels:
+  - conda-forge
+dependencies:
+  # geant4 noqt variant: headless build (no Qt/OpenGL). The interactive viewer
+  # needs the `qt` variant instead, plus -DBL4S_VIS=ON at configure time.
+  - geant4=*=noqt*
+  - cmake>=3.20
+  - make
+  - python=3.11
+  - numpy>=1.26
+  - scipy>=1.11
+  - pandas>=2.1
+  - matplotlib>=3.8
+  # expat/zlib ship only their runtime libs as geant4 dependencies; Geant4's
+  # CMake config runs find_dependency(EXPAT 2.8.5) / (ZLIB 1.3.2), which needs
+  # the headers to determine the version.
+  - expat
+  - zlib

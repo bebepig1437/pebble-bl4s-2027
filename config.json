@@ -1,0 +1,92 @@
+{
+  "project": {
+    "facility": "DESY-II",
+    "particle": "e-",
+    "seed": 2027,
+    "events_full": 25000,
+    "events_smoke": 2000,
+    "max_workers": 4
+  },
+  "beam": {
+    "nominal_energy_GeV": 3.0,
+    "energy_scan_GeV": [1.0, 3.0, 6.0],
+    "energy_spread_GeV": 0.15,
+    "beam_diameter_mm": 20.0
+  },
+  "geometry": {
+    "disc_diameter_mm": 25.0,
+    "nominal_thickness_mm": 2.0,
+    "thickness_scan_mm": [1.0, 2.0, 3.0],
+    "trigger_xy_mm": 10.0,
+    "sipm_xy_mm": 3.0
+  },
+  "materials": [
+    {
+      "id": "EJ200",
+      "label": "EJ-200 (Plastic Control)",
+      "sim_material": "EJ200",
+      "loading_wt": 0.0,
+      "color": "#2563EB",
+      "rindex": 1.58,
+      "abs_length_mm": 3800.0,
+      "scat_length_mm": 10000.0,
+      "light_yield_nominal": 10000.0,
+      "light_yield_min": 9500.0,
+      "light_yield_max": 10500.0
+    },
+    {
+      "id": "BiNanoPDMS_25wt",
+      "label": "Bi-Nano PDMS (25 wt%, 1.27 g/cm³)",
+      "sim_material": "BiNanoPDMS",
+      "loading_wt": 0.25,
+      "color": "#EA580C",
+      "rindex": 1.45,
+      "abs_length_mm": 250.0,
+      "scat_length_mm": 500.0,
+      "light_yield_nominal": 10000.0,
+      "light_yield_min": 5000.0,
+      "light_yield_max": 15000.0
+    },
+    {
+      "id": "BiNanoPDMS_66wt",
+      "label": "Bi-Nano PDMS (66 wt%, 2.12 g/cm³)",
+      "sim_material": "BiNanoPDMS",
+      "loading_wt": 0.66,
+      "color": "#DC2626",
+      "rindex": 1.54,
+      "abs_length_mm": 180.0,
+      "scat_length_mm": 300.0,
+      "light_yield_nominal": 10000.0,
+      "light_yield_min": 5000.0,
+      "light_yield_max": 15000.0
+    },
+    {
+      "id": "BiPh3PVK",
+      "label": "BiPh3-PVK (15 wt%, 1.25 g/cm³)",
+      "sim_material": "BiPh3PVK",
+      "loading_wt": 0.15,
+      "color": "#059669",
+      "rindex": 1.68,
+      "abs_length_mm": 1000.0,
+      "scat_length_mm": 10000.0,
+      "light_yield_nominal": 7000.0,
+      "light_yield_min": 5000.0,
+      "light_yield_max": 9000.0
+    }
+  ],
+  "optical_mc": {
+    "n_photons": 100000,
+    "max_bounces": 200,
+    "grease_rindex": 1.465,
+    "sipm_epoxy_rindex": 1.55,
+    "esr_reflectivity": 0.985,
+    "sipm_pde_450nm": 0.40,
+    "trigger_threshold_pe": 20.0,
+    "mie_control": {
+      "label": "Method A (Hazy Mie Micro-PDMS)",
+      "rindex": 1.45,
+      "abs_length_mm": 150.0,
+      "scat_length_mm": 0.4
+    }
+  }
+}
