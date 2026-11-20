@@ -87,3 +87,7 @@ Material parameters are literature values or estimates. Light yields are ranges,
 The simulated scattering angle agrees with the Highland formula to within 4% at the three lower loadings and to within about 10% at 66 wt%.
 
 Two of the three bismuth formulations return more photoelectrons than EJ-200. The 25 wt% disc also has the best collection efficiency of the set, while the 66 wt% disc returns the most photoelectrons but collects light least efficiently.
+
+## License
+
+All rights reserved. The code, figures and results in this repository may not be copied, reused or redistributed without written permission. See [LICENSE](LICENSE).
