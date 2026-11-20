@@ -1,5 +1,16 @@
 # CERN BL4S 2027 — Lead-Free Bismuth Scintillator Simulation Suite
 
+**PEBBLE** — **P**erovskite **E**lectron **B**eam **B**enchmark for **L**ight **E**mission — is the name of the project and of this repository (`pebble-bl4s-2027`). Six letters, six words: *for* is the only word that contributes none. Each letter names a load-bearing piece of the simulation:
+
+| Letter | Word | What it names here |
+| --- | --- | --- |
+| **P** | Perovskite | the lead-free $Cs_2AgBi_{0.9}Sb_{0.1}Br_6$ double perovskite dispersed in PDMS, the material the beam test is built around |
+| **E** | Electron | the single-electron DESY-II (1–6 GeV/c) and ELSA (0.8–3.2 GeV) test beams |
+| **B** | Beam | the 20 mm beam spot and $S_1/S_2$ paddle geometry this code reproduces (≈31% trigger acceptance) |
+| **B** | Benchmark | the reference numbers — MPV $\Delta E$, $\epsilon_{\text{geo}}$, $N_{\text{p.e.}}$, $\theta_{\text{RMS}}$ — the experiment has to reproduce |
+| **L** | Light | scintillation photons traced through total internal reflection, Rayleigh/Mie scattering and 3M ESR foil reflection |
+| **E** | Emission | the photoelectron yield at the SiPM, the number that decides whether a clean trigger is possible |
+
 Reproducible **Geant4 + 3D Optical Monte Carlo** digital twin for our **CERN Beamline for Schools (BL4S) 2027** proposal, configured for the **DESY-II (1–6 GeV/c)** and **ELSA (0.8–3.2 GeV)** single-electron test beamlines.
 
 ## What This Simulation Proves
