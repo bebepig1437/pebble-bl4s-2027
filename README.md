@@ -1,80 +1,89 @@
-# CERN BL4S 2027 — Lead-Free Bismuth Scintillator Simulation Suite
+# PEBBLE — Lead-Free Bismuth Scintillators for CERN BL4S 2027
 
-**PEBBLE** — **P**erovskite **E**lectron **B**eam **B**enchmark for **L**ight **E**mission — is the name of the project and of this repository (`pebble-bl4s-2027`). Six letters, six words: *for* is the only word that contributes none. Each letter names a load-bearing piece of the simulation:
+PEBBLE (**P**erovskite **E**lectron **B**eam **B**enchmark for **L**ight **E**mission) is a student project for the [CERN Beamline for Schools](https://beamline-for-schools.web.cern.ch/) competition. It asks one question: on a GeV electron beam, can a lead-free bismuth-loaded plastic scintillator beat commercial EJ-200 in a detector only a few millimetres thick?
 
-| Letter | Word | What it names here |
-| --- | --- | --- |
-| **P** | Perovskite | the lead-free $Cs_2AgBi_{0.9}Sb_{0.1}Br_6$ double perovskite dispersed in PDMS, the material the beam test is built around |
-| **E** | Electron | the single-electron DESY-II (1–6 GeV/c) and ELSA (0.8–3.2 GeV) test beams |
-| **B** | Beam | the 20 mm beam spot and $S_1/S_2$ paddle geometry this code reproduces (≈31% trigger acceptance) |
-| **B** | Benchmark | the reference numbers — MPV $\Delta E$, $\epsilon_{\text{geo}}$, $N_{\text{p.e.}}$, $\theta_{\text{RMS}}$ — the experiment has to reproduce |
-| **L** | Light | scintillation photons traced through total internal reflection, Rayleigh/Mie scattering and 3M ESR foil reflection |
-| **E** | Emission | the photoelectron yield at the SiPM, the number that decides whether a clean trigger is possible |
+This repository is the simulation work behind that question — a Geant4 model of energy deposition and a ray-traced model of light collection, both driven from one config file.
 
-Reproducible **Geant4 + 3D Optical Monte Carlo** digital twin for our **CERN Beamline for Schools (BL4S) 2027** proposal, configured for the **DESY-II (1–6 GeV/c)** and **ELSA (0.8–3.2 GeV)** single-electron test beamlines.
+## The question
 
-## What This Simulation Proves
-1. **Energy Deposition (Landau-Vavilov MPV):** Exact thin-target relativistic electron energy loss ($\Delta E$) across `EJ-200`, `BiNanoPDMS` ($Cs_2AgBi_{0.9}Sb_{0.1}Br_6$ in PDMS), and `BiPh3-PVK`.
-2. **Optical Signal Viability (SiPM Photoelectrons):** 3D Monte Carlo photon ray-tracing through a 25 mm disc wrapped in 3M ESR reflector foil (98.5%) into a $3\times 3\text{ mm}^2$ Hamamatsu S13360-3050CS SiPM (40% PDE), proving we clear the **>20 p.e.** clean trigger threshold and quantifying the **Rayleigh (Method B nanocrystals) vs. Mie (Method A microcrystals)** light-collection advantage.
-3. **High-$Z$ Beamline Signatures:** Multiple Coulomb Scattering angles ($\theta_{\text{RMS}}$, cross-checked against the analytical Highland formula) and Bremsstrahlung photon production measurable by DESY-II's 6-plane silicon beam telescope and lead-glass calorimeter.
+A 2 mm EJ-200 disc sits at 0.47% of a radiation length. It is fast and cheap, but thin and light, so a minimum-ionising 3 GeV electron deposits only about 0.3 MeV in it.
 
----
+Loading the polymer with bismuth changes that. The composite gets denser and its radiation length shortens, so each millimetre absorbs more energy and produces more bremsstrahlung and scattering. But the optics get worse as the loading goes up: the material becomes hazier, less light reaches the SiPM, and the molecular BiPh3-PVK route starts from a lower light yield.
 
-## Quickstart (Mac, Linux, or Windows WSL2)
+So the interesting question is not whether bismuth is "better", but where the product of deposited energy and collected light peaks — and whether any of these materials clears the photoelectron threshold needed for a clean trigger.
 
-### 1. Create the Reproducible Environment (One-Time Setup)
+## The setup
+
+![Simulated beamline](results/fig1_setup_3d.png)
+
+| Component | Description |
+| --- | --- |
+| Beam | DESY-II single electrons, 1–6 GeV/c, 20 mm spot; ELSA (0.8–3.2 GeV) as the alternative |
+| Trigger | Two 10 × 10 × 2 mm EJ-200 paddles at z = ∓60 mm, coincidence on > 0.05 MeV in each |
+| Sample | 25 mm disc, 1–3 mm thick (2 mm nominal), wrapped in 3M ESR foil (R = 98.5%) |
+| Readout | Hamamatsu S13360-3050CS SiPM, 3 × 3 mm², 40% PDE at 450 nm, coupled with n = 1.465 grease |
+| Threshold | 20 photoelectrons for a clean trigger |
+
+The 20 mm beam and the 10 mm paddles give roughly 31% trigger acceptance, which matches the real DESY-II beam profile rather than an idealised pencil beam.
+
+## What the simulation does
+
+**Energy deposition (Geant4).** A single-file C++ application built on `FTFP_BERT` with `G4EmStandardPhysics_option4` tracks each electron through the paddles, the sample and the calorimeter, recording energy deposited in every volume. Composite densities are computed from the rule of mixtures and cross-checked against Geant4's own material calculation, never hardcoded.
+
+**Light collection (NumPy ray tracer).** Scintillation photons are traced from their production point through Fresnel and total-internal reflection at the disc faces, absorption and Rayleigh or Mie scattering in the bulk, and specular reflection off the ESR wrap, until they hit the SiPM or are lost. This runs in vectorised NumPy rather than `G4OpticalPhysics`, which keeps a 100,000-photon sample to a fraction of a second.
+
+**Checks against theory.** Energy-loss spectra are fitted with a Landau/Moyal most-probable value, and the simulated multiple-scattering angle is compared with the analytical Highland formula. Where the two disagree, the disagreement is reported rather than smoothed over.
+
+## Results
+
+3 GeV electrons on a 2 mm disc, 25,000 events per material, DESY-II geometry:
+
+| Material | Density (g/cm³) | X₀ (mm) | ΔE MPV (MeV) | Light collection | SiPM yield (p.e.) |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| EJ-200 (control) | 1.03 | 425 | 0.315 | 19.0% | 239 |
+| Bi-nano PDMS, 25 wt% | 1.27 | 151 | 0.362 | 22.9% | 332 |
+| Bi-nano PDMS, 66 wt% | 2.12 | 56 | 0.552 | 17.7% | 391 |
+| BiPh3-PVK, 15 wt% | 1.25 | 245 | 0.362 | 15.2% | 154 |
+
+![Photoelectron yield versus thickness](results/fig3_sipm_yield.png)
+
+Three things follow from this table.
+
+The 66 wt% composite deposits 1.75× the energy of EJ-200 and gives the highest yield at 391 p.e., but its collection efficiency is the second worst of the four. The gain comes from density and radiation length, not from better optics — heavier loading makes the material hazier, exactly as expected.
+
+At 25 wt%, the realistic wet-cast loading, the composite still returns 39% more photoelectrons than EJ-200 while keeping the best collection efficiency in the set. That is the formulation the proposal is built around.
+
+BiPh3-PVK is the dimmest at 154 p.e. despite matching the 25 wt% composite in deposited energy, because its light yield per MeV is lower and its higher refractive index traps more light. All four clear the 20 p.e. threshold, so the choice is about margin rather than feasibility.
+
+The optical model also separates the two synthesis routes: transparent Rayleigh-sized nanocrystals collect 22.9% of the light against 16.9% for hazy Mie-sized microcrystals at the same loading, a 1.4× difference that is purely optical.
+
+## Running it
+
 ```bash
 conda env create -f environment.yml
 conda activate bl4s-sim
+
+python run_pipeline.py --smoke-test    # 2,000 events, about 30 s
+python run_pipeline.py                 # full statistics, about 2–3 min
+python run_pipeline.py --skip-geant4   # re-plot from existing CSVs, about 3 s
 ```
 
-> **Environment note.** `environment.yml` pins the headless `geant4=*=noqt*` build — no Qt or
-> OpenGL viewer, so `--vis` reports that it is unavailable (see step 5). It also lists the
-> `expat` and `zlib` dev packages: Geant4's CMake config runs `find_dependency(EXPAT 2.8.5)`
-> and `(ZLIB 1.3.2)`, and on macOS CMake otherwise selects the system SDK stubs, whose older
-> versions fail that version check. The interactive viewer needs a `qt` Geant4 build plus
-> `cmake -DBL4S_VIS=ON`.
+`environment.yml` pins the headless `geant4=*=noqt*` build, so `--vis` reports that no viewer is available; a Qt build plus `-DBL4S_VIS=ON` enables it. The `expat` and `zlib` entries are there because Geant4's CMake config requires versions newer than the macOS SDK ships.
 
-### 2. Run a Fast Verification Smoke Test (~30 seconds)
-```bash
-python run_pipeline.py --smoke-test
-```
+## Repository layout
 
-### 3. Run the Full High-Statistics Simulation & Generate All Plots (~2–3 minutes)
-```bash
-python run_pipeline.py
-```
-
-### 4. Re-Plot or Tweak Optical/SiPM Settings Without Re-Running Geant4 (~3 seconds)
-```bash
-python run_pipeline.py --skip-geant4
-```
-
-### 5. Optional: Launch Interactive 3D Geant4 Viewer
-```bash
-./build/bl4s_sim --material BiNanoPDMS --loading 0.25 --thickness 2.0 --energy 3.0 --vis
-```
-
----
-
-## Outputs Generated in `results/`
-
-| File | Description |
+| Path | Contents |
 | --- | --- |
-| `fig1_setup_3d.png` | 3D engineering render of the DESY-II telescope, $S_1/S_2$ triggers, DUT disc, SiPM, and calorimeter |
-| `fig2_landau_edep.png` | Overlaid 3 GeV electron energy-deposition spectra (2 mm disc) with Moyal/Landau MPV fits |
-| `fig3_sipm_yield.png` | Expected Hamamatsu SiPM photoelectrons vs. thickness (with literature light-yield uncertainty bands & 20 p.e. trigger floor) + Rayleigh vs. Mie collection inset |
-| `fig4_scattering_brem.png` | RMS electron scattering angle vs. analytical Highland theory & Bremsstrahlung photon yield across 1–6 GeV |
-| `summary_table.md` | Proposal-ready Markdown benchmark table with MPV $\Delta E$, $X_0$, $\epsilon_{\text{geo}}$, $N_{\text{p.e.}}$, and $\theta_{\text{RMS}}$ |
+| `config.json` | Beam, geometry, material and optical parameters — the only file that needs editing for a sweep |
+| `src/sim.cc` | Geant4 application: geometry, stepping action, CSV output |
+| `src/optical_mc.py` | Vectorised photon transport and collection efficiency |
+| `run_pipeline.py` | Builds the simulation, runs the sweep in parallel, fits, cross-checks and plots |
+| `results/` | Figures, per-job metrics and the summary table |
 
----
+## Scope and limits
 
-## How to Edit Parameters Safely
+This is a student project, not a measurement. Every number here is a simulation estimate intended to size a beam-test proposal, and the figures should be read that way.
 
-Open **`config.json`** to change:
+The material parameters are literature values or informed estimates: light yields are taken as ranges and plotted with uncertainty bands, and the absorption and scattering lengths are nominal. The optical model is geometric and monochromatic at the 450 nm design point. Detector electronics, timing resolution and calibration are not simulated. The Highland comparison agrees to a few percent at low loading and departs at 66 wt%, where the Gaussian approximation is no longer a good description of a thick, high-Z sample.
 
-* Beam facility (`DESY-II` or `ELSA`), particle (`e-` or `e+`), energies (`1, 3, 6 GeV`), or momentum spread
-* DUT disc diameter, thickness sweep (`1, 2, 3 mm`), and composite weight-fraction loading
-* Optical constants (refractive index, absorption/scattering lengths, 3M ESR reflectivity, SiPM PDE)
-
-No C++ editing is required for standard parameter sweeps.
+What the simulation does support is a comparison: under one consistent set of assumptions, the bismuth-loaded discs return more photoelectrons than EJ-200, and the 25 wt% formulation is the best compromise between energy deposition and light collection.
