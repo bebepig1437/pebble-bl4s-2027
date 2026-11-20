@@ -90,4 +90,4 @@ Two of the three bismuth formulations return more photoelectrons than EJ-200. Th
 
 ## License
 
-All rights reserved. The code, figures and results in this repository may not be copied, reused or redistributed without written permission. See [LICENSE](LICENSE).
+Released under the [GNU General Public License v3.0](LICENSE). Contributions are accepted under the same license; see [CONTRIBUTING.md](CONTRIBUTING.md).
